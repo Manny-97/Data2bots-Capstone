@@ -11,11 +11,11 @@ COPY requirements.txt .
 RUN pip install -r requirements.txt
 
 # copy the content of the local src directory to the working directory
-COPY src/ .
+COPY . .
 
 # copy shell script
-COPY run.sh .
-RUN chmod +x ./run.sh
+COPY ./data-ingestion/run.sh ./data-ingestion/run.sh
+RUN chmod +x ./data-ingestion/run.sh
 
 # command to run on container start
 CMD [ "./data-ingestion/run.sh" ]

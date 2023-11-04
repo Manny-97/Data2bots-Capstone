@@ -26,4 +26,5 @@ VIII. **Scalability**: Finnhub accommodates projects of all sizes, from small-sc
 IX. **Historical Data**: In addition to real-time data, Finnhub offers historical data for trend analysis and backtesting trading strategies.
 
 Leveraging Finnhub as a data source in streaming data engineering projects empowers professionals to utilize real-time financial data for informed decision-making, algorithm development, and market insights. By tapping into Finnhub's vast data offerings and real-time capabilities, organizations gain an advantage in monitoring trends, seizing opportunities, and managing risks in the ever-evolving financial landscape.
+
 ## 2. Data Ingestion

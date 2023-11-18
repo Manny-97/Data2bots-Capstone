@@ -20,7 +20,7 @@ class FinnhubProducer:
             api_version=(0, 10, 1),
         )
 
-        self.avro_schema = avro.schema.parse(open("utility/schemas.avsc").read())
+        self.avro_schema = avro.schema.parse(open("schema.avsc").read())
         print("Schema Loaded")
 
         self.ws = websocket.WebSocketApp(

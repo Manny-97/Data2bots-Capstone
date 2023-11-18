@@ -28,3 +28,14 @@ IX. **Historical Data**: In addition to real-time data, Finnhub offers historica
 Leveraging Finnhub as a data source in streaming data engineering projects empowers professionals to utilize real-time financial data for informed decision-making, algorithm development, and market insights. By tapping into Finnhub's vast data offerings and real-time capabilities, organizations gain an advantage in monitoring trends, seizing opportunities, and managing risks in the ever-evolving financial landscape.
 
 ## 2. Data Ingestion
+Data ingestion from Finnhub can be streamlined and made scalable by setting up the Finnhub Producer application and containerizing the solution.
+The Finnhub Producer is an app to fetch market data from Finnhub's API. Containerizing this application ensures easy deployment, scalability, and consistent execution across various environments.
+#### Add finnhub key
+Open the .env file within the directory and replace the placeholder `"Your Finnhub token"` with your actual Finnhub API key.
+
+
+The Producer service subscribes to the stock ticker trading topic through the Finnhub WebSocket endpoint. Leveraging the power of websockets and the kafka-python library, the producer app reads messages in near real-time from the web socket, encoding each JSON response into Avro binary format.
+
+
+Every encoded message is then dispatched to the Kafka broker, which we've configured in the preceding Docker Compose file. In this architecture, Kafka acts as a reliable message bus. Our primary focus is on transmitting these crucial ticker data points to a designated Kafka topic. This strategy facilitates asynchronous consumption, providing the groundwork for a separate Spark processing cluster. By utilizing Kafka as a dedicated message broker, we create a seamless flow for sending and receiving financial market data, optimizing the architecture for subsequent Spark-driven analytics and processing.
+## 3. Kafka

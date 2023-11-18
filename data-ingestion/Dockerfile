@@ -1,20 +1,21 @@
-# set base image (host OS)
-FROM python:3.11-alpine3.17
+# write a python dockerfile
+FROM python:3.9
 
-# set the working directory in the container
-WORKDIR /code
+# set the working directory
+WORKDIR /app
 
-# copy the dependencies file to the working directory
+# copy the requirements file
 COPY requirements.txt .
 
-# install dependencies
+# install the requirements
 RUN pip install -r requirements.txt
 
-# copy the content of the local src directory to the working directory
+# copy the rest of the files
 COPY src/ .
 
 # copy shell script
 COPY run.sh .
+# make shell script executable
 RUN chmod +x ./run.sh
 
 # command to run on container start

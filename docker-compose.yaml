@@ -81,7 +81,7 @@ services:
     ports:
       - 8003:8003
     depends_on:
-      - finnhubproducer
+      - producer
     environment:
       FINNHUB_TOKEN: ${FINNHUB_TOKEN}
       KAFKA_HOST: ${KAFKA_HOST}

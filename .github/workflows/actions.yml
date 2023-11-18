@@ -14,6 +14,7 @@ jobs:
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
+      # https://stackoverflow.com/questions/76313084/github-workflow-action-docker-compose-build-push-does-nothing-no-errors-but
       - name: Build and push
         run: |
           docker compose build --build-arg TAG_NAME=${{ secrets.DOCKER_USERNAME }}-${{ github.run_number }} && \

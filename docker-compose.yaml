@@ -1,0 +1,95 @@
+version: "3.6"
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:6.2.0
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    networks:
+      - pipeline-network
+
+  kafka:
+    image: confluentinc/cp-kafka:6.2.0
+    hostname: kafka
+    container_name: kafka
+    depends_on:
+      - zookeeper
+    ports:
+      - "9092:9092"
+      - "9101:9101"
+    healthcheck:
+      test: nc -z localhost 9092 || exit -1
+      start_period: 15s
+      interval: 5s
+      timeout: 10s
+      retries: 10
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ADVERTISED_HOST_NAME: kafka:9092
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_CONFLUENT_LICENSE_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_CONFLUENT_BALANCER_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+    networks:
+      - pipeline-network
+
+  kafdrop:
+    image: obsidiandynamics/kafdrop:3.27.0
+    container_name: kafdrop
+    depends_on:
+      - kafka
+      - zookeeper
+    ports:
+      - 19000:9000
+    environment:
+      KAFKA_BROKERCONNECT: kafka:29092
+    networks:
+      - pipeline-network
+
+  producer:
+    build:
+      context: ./data-ingestion
+      dockerfile: Dockerfile
+    container_name: FinnhubProducer
+    ports:
+      - 8001:8001
+    environment:
+      FINNHUB_TOKEN: ${FINNHUB_TOKEN}
+      KAFKA_HOST: ${KAFKA_HOST}
+      KAFKA_PORT: ${KAFKA_PORT}
+      KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
+      FINNHUB_STOCKS_TICKERS: ${FINNHUB_STOCKS_TICKERS}
+      RATE_LIMIT: 5.0
+    networks:
+      - pipeline-network
+
+  consumer:
+    build:
+      context: ./consumer
+      dockerfile: Dockerfile
+    container_name: KafkaConsumer
+    ports:
+      - 8003:8003
+    depends_on:
+      - finnhubproducer
+    environment:
+      FINNHUB_TOKEN: ${FINNHUB_TOKEN}
+      KAFKA_HOST: ${KAFKA_HOST}
+      KAFKA_PORT: ${KAFKA_PORT}
+      KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
+    networks:
+      - pipeline-network
+   
+networks:
+  pipeline-network:
+    driver: bridge

@@ -1,4 +1,4 @@
-name: build and Push Docker image
+name: Build and Push Docker image
 
 on: push
 
@@ -18,8 +18,10 @@ jobs:
       
     
       - name: Build and push Docker image
-        uses: docker/build-push-action@v2
+        uses: docker/compose-action@v2
         with:
+          compose-file: docker-compose.yml
           context: .
-          push: true
+          # push: true
+          args: build
           tags: ${{ secrets.DOCKER_USERNAME }}/d2bcapstone:latest, ${{ secrets.DOCKER_USERNAME }}/d2bcapstone:${{ github.run_number }}

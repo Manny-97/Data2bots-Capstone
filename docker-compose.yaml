@@ -69,7 +69,6 @@ services:
       KAFKA_PORT: ${KAFKA_PORT}
       KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
       FINNHUB_STOCKS_TICKERS: ${FINNHUB_STOCKS_TICKERS}
-      RATE_LIMIT: 5.0
     networks:
       - pipeline-network
 
@@ -87,6 +86,79 @@ services:
       KAFKA_HOST: ${KAFKA_HOST}
       KAFKA_PORT: ${KAFKA_PORT}
       KAFKA_TOPIC_NAME: ${KAFKA_TOPIC_NAME}
+    networks:
+      - pipeline-network
+
+  spark-master:
+    build:
+      context: ./spark/processor
+      dockerfile: Dockerfile.spark-master
+    container_name: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    environment:
+      - INIT_DAEMON_STEP=setup_spark
+      - SPARK_PUBLIC_DNS=localhost
+    networks:
+      - pipeline-network
+
+  spark-worker-1:
+    build:
+      context: ./spark/processor
+      dockerfile: Dockerfile.spark-worker
+    container_name: spark-worker-1
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
+      - SPARK_PUBLIC_DNS=localhost
+    networks:
+      - pipeline-network  
+      
+  spark-worker-2:
+    build:
+      context: ./spark/processor
+      dockerfile: Dockerfile.spark-worker
+    container_name: spark-worker-2
+    depends_on:
+      - spark-master
+    ports:
+      - "8082:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
+      - SPARK_PUBLIC_DNS=localhost
+    networks:
+      - pipeline-network
+
+  streamprocessor:
+    build:
+      context: ./spark
+      dockerfile: Dockerfile
+    container_name: StreamProcessor
+    ports:
+      - "8002:8002"
+      - "4040:4040"
+    environment:
+      - SPARK_PUBLIC_DNS=localhost
+      - KAFKA_HOST=${KAFKA_HOST}
+      - KAFKA_PORT=${KAFKA_PORT}
+      - KAFKA_TOPIC_NAME=${KAFKA_TOPIC_NAME}
+      - SNOWFLAKE_URL=${SNOWFLAKE_URL}
+      - SNOWFLAKE_USER=${SNOWFLAKE_USER}
+      - SNOWFLAKE_PASSWORD=${SNOWFLAKE_PASSWORD}
+      - SNOWFLAKE_ACCOUNT=${SNOWFLAKE_ACCOUNT}
+      - SNOWFLAKE_WAREHOUSE=${SNOWFLAKE_WAREHOUSE}
+      - SNOWFLAKE_DATABASE=${SNOWFLAKE_DATABASE}
+      - SNOWFLAKE_SCHEMA=${SNOWFLAKE_SCHEMA}
+      - SNOWFLAKE_ROLE=${SNOWFLAKE_ROLE}
+      - SNOWFLAKE_TABLE=${SNOWFLAKE_TABLE}
+    depends_on:
+      - spark-master
+      - spark-worker-1
+      - spark-worker-2
     networks:
       - pipeline-network
    

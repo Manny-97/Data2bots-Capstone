@@ -34,8 +34,55 @@ The Finnhub Producer is an app to fetch market data from Finnhub's API. Containe
 Open the .env file within the directory and replace the placeholder `"Your Finnhub token"` with your actual Finnhub API key.
 
 
+![producer-diagram](images/producer.png)
 The Producer service subscribes to the stock ticker trading topic through the Finnhub WebSocket endpoint. Leveraging the power of websockets and the kafka-python library, the producer app reads messages in near real-time from the web socket, encoding each JSON response into Avro binary format.
 
 
 Every encoded message is then dispatched to the Kafka broker, which we've configured in the preceding Docker Compose file. In this architecture, Kafka acts as a reliable message bus. Our primary focus is on transmitting these crucial ticker data points to a designated Kafka topic. This strategy facilitates asynchronous consumption, providing the groundwork for a separate Spark processing cluster. By utilizing Kafka as a dedicated message broker, we create a seamless flow for sending and receiving financial market data, optimizing the architecture for subsequent Spark-driven analytics and processing.
+
 ## 3. Kafka
+![kafkadro-diagram](images/kafkadrop.png)
+![kafkadrop-overview-diagram](images/kafkadrops-overview.png)
+![kafka-message-diagram](images/kafka-messages.png)
+![docker-diagram](images/docker-kafka.png)
+
+## 4. Spark
+![spark-job-diagram](images/spark-job.png)
+![DAGS-diagram](images/DAG.png)
+
+## 5.Snowflake
+The database definition is given by the query below, and can be found at this directory `snowflake/snowflake-setup.sql`:
+
+```sql
+-- Create a database if it does not exist and switch to it
+CREATE DATABASE IF NOT EXISTS markets;
+
+-- Switch to the market database
+USE DATABASE markets;
+
+-- Create a table 'trades'
+CREATE TABLE IF NOT EXISTS trades (
+    uuid STRING,
+    trade_conditions STRING,
+    price DOUBLE,
+    symbol STRING,
+    trade_timestamp TIMESTAMP,
+    ingest_timestamp TIMESTAMP,
+    volume DOUBLE,
+    type STRING,
+    PRIMARY KEY (symbol, trade_timestamp)
+);
+
+```
+![stream-count-diagram](images/count.png)
+![stream-overview-diagram](images/overview.png)
+
+## To run the code:
+    - Copy the snowflake-setup.sql content and paste in your snowflake GUI and run the query
+    - Clone this repository
+    - Run `make` on your terminal to start the streaming process
+    - run `docker-compose down` to kill all processes
+
+## Improvements
+1. Use Terraform for IAAC - this including starting the container as well as creating the database.
+2. Add some transformation queries to the spark to perform some business requirements.
